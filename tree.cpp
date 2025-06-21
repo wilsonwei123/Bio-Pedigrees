@@ -131,7 +131,8 @@ public:
             return;
         }
         if (partnerNode->partner) {
-            cout << "Already has a partnes\n";
+            cout << "Already has a partner\n";
+            return;
         }
         partner = partnerNode;
         unordered_set<Node*> s;
