@@ -1,4 +1,5 @@
 //to-do: add/remove sibling method, use file i/o for storing trees, use bfs to print generations
+//urgent fix: for add commands, make sure newNode links are severed. eg if newNode is already a child of this then it cannot be a partner of this until connection removed.
 //make addParent() and removeParent() make partnering parents optional
 
 #include <iostream>
@@ -147,25 +148,58 @@ public:
         partner->partner = this;
     }
 
-    //adds children to both it and its partner (if applicable)
-    void addChildren(vector<Node*> newChildren) {
-        for (int i = 0; i < newChildren.size(); i++) {
+    //adds child to both it and its partner (if applicable)
+    void addChildren(Node* newChild) {
+        if (find(children.begin(), children.end(), newChild) != children.end()) {
+            cout << "Already a child\n";
+            return;
+        }
+        if (newChild == this || newChild == partner) {
+            cout << "Cannot add self or partner as child\n";
+            return;
+        }
+        if (newChild->parents.size() == 2) {
+            cout << "Already has max parent capacity (2)\n";
+            return;
+        }
+        if (newChild->parents.size() == 1) {
             if (partner) {
-                partner->children.push_back(newChildren[i]);
-                newChildren[i]->parents.push_back(partner);
+                cout << "Cannot overload parents.\n";
+                return;
+            } else {
+                partner = newChild->parents[0];
+                newChild->parents[0]->partner = this;
             }
-            children.push_back(newChildren[i]);
-            newChildren[i]->parents.push_back(this);
+        }
+        children.push_back(newChild);
+        newChild->parents.push_back(this);
+        if (partner) {
+            partner->children.push_back(newChild);
+            if (find(newChild->parents.begin(), newChild->parents.end(), partner) == newChild->parents.end()) {
+                newChild->parents.push_back(partner);
+            }
         }
     }
 
     //adds a parent
     void addParent(Node* newParent) {
+        if (newParent == this) {
+            cout << "Cannot assign self to parent\n";
+            return;
+        }
+        if (find(parents.begin(), parents.end(), newParent) != parents.end()) {
+            cout << "Already a parent of node\n";
+            return;
+        }
         if (parents.size() == 2) {
             cout << "Max parent capacity (2) already\n";
             return;
         }
         if (parents.size() == 1) {
+            if (newParent->partner) {
+                cout << "Cannot overload parents\n";
+                return;
+            }
             parents[0]->partner = newParent;
             newParent->partner = parents[0];
         }
@@ -267,35 +301,41 @@ void cmdAdd(Node* curr) {
         string partnerName;
         cout << "Enter new partner name: ";
         cin >> partnerName;
+
+        Node* partnerNode;
         if (everyone.find(partnerName) != everyone.end()) {
-            cout << "Already exists\n";
+            partnerNode = everyone[partnerName];
         } else {
-            Node* partnerNode = new Node(partnerName);
+            partnerNode = new Node(partnerName);
             everyone[partnerName] = partnerNode;
-            curr->addPartner(partnerNode);
         }
+        curr->addPartner(partnerNode);
     } else if (response == "child") {
         string childName;
         cout << "Enter new child name: ";
         cin >> childName; 
+
+        Node* childNode;
         if (everyone.find(childName) != everyone.end()) {
-            cout << "Already exists\n";
+            childNode = everyone[childName];
         } else {
-            Node* childNode = new Node(childName);
+            childNode = new Node(childName);
             everyone[childName] = childNode;
-            curr->addChildren({childNode});
         }
+        curr->addChildren(childNode);
     } else if (response == "parent") {
         string parentName;
         cout << "Enter new parent name: ";
         cin >> parentName;
+
+        Node* parentNode;
         if (everyone.find(parentName) != everyone.end()) {
-            cout << "Already exists\n";
+            parentNode = everyone[parentName];
         } else {
-            Node* parentNode = new Node(parentName);
+            parentNode = new Node(parentName);
             everyone[parentName] = parentNode;
-            curr->addParent(parentNode);
         }
+        curr->addParent(parentNode);
     } else {
         cout << "Response not recognised\n";
     }
@@ -314,7 +354,9 @@ void cmdSearch() {
 
 //main function (needs to be tidied up (make a function for every command))
 void run() {
-    string name, command = "";
+    string treeName, name, command = "";
+    cout << "Enter the tree name (no spaces): ";
+    cin >> treeName;
     cout << "Enter starting node name: ";
     cin >> name;
 
@@ -323,6 +365,7 @@ void run() {
     Node* curr = startNode;
 
     while (true) {
+        cout << "CLI-" << treeName << "-Tree > ";
         cin >> command;
         if (command == "stop") {
             break;
@@ -356,5 +399,9 @@ void run() {
 
 int main() {
     run();
+    //cleanup of memory
+    for (auto& i : everyone) {
+        delete i.second;
+    }
     return 0;
 }
