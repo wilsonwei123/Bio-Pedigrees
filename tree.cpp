@@ -83,7 +83,9 @@ public:
     //seperates into two trees (child tree and current tree). also removes child from partner
     void removeChild(Node* child) {
         removeFromVector(children, child);
-        removeFromVector(partner->children, child);
+        if (partner) {
+            removeFromVector(partner->children, child);
+        }
     }
 
     //cuts connection between thisNode and parent
@@ -135,6 +137,20 @@ public:
         }
         parents.push_back(newParent);
         newParent->children.push_back(this);
+    }
+
+    void deleteNode() {
+        if (children.size() != 0) {
+            return;
+        }
+        if (partner) {
+            partner->partner = nullptr;
+        }
+        for (int i = 0; i < parents.size(); i++) {
+            removeFromVector(parents[i]->children, this);
+        }
+        everyone.erase(val);
+        delete this;
     }
 };
 
