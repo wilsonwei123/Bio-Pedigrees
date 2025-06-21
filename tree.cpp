@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace std;
 
@@ -9,6 +10,14 @@ using namespace std;
 
 //map everybody to their nodes, so split trees can be retrieved
 unordered_map<string, Node*> everyone = {};
+
+//helper function
+void removeFromVector(vector<Node*>& vec, Node* target) {
+    auto it = find(vec.begin(), vec.end(), target);
+    if (it != vec.end()) {
+        vec.erase(it);
+    }
+}
 
 //class for a member
 class Node {
@@ -64,29 +73,17 @@ public:
         cout << "\n";
     }
 
-    //when this is called, then it sets the partner's children to {}, but children should remain the same
+    //when this is called, the children remain shared between the partners
     void removePartner() {
-        if (!partner) {
-            return;
-        }
-        partner->children = {};
+        if (!partner) return;
         partner->partner = nullptr;
-        partner = nullptr;
+        this->partner = nullptr;
     }
 
     //seperates into two trees (child tree and current tree). also removes child from partner
     void removeChild(Node* child) {
-        auto it = find(children.begin(), children.end(), child);
-        if (it != children.end()) {
-            children.erase(it);
-        }
-
-        if (partner) {
-            it = find(partner->children.begin(), partner->children.end(), child);
-            if (it != partner->children.end()) {
-                partner->children.erase(it);
-            }
-        }
+        removeFromVector(children, child);
+        removeFromVector(partner->children, child);
     }
 
     //cuts connection between thisNode and parent
@@ -108,9 +105,14 @@ public:
             return;
         }
         partner = partnerNode;
-        for (int i = 0; i < partner->children.size(); i++) {
-            children.push_back(partner->children[i]);
+        unordered_set<Node*> s;
+        for (int i = 0; i < children.size(); i++) {
+            s.insert(children[i]);
         }
+        for (int i = 0; i < partner->children.size(); i++) {
+            s.insert(partner->children[i]);
+        }
+        children = vector<Node*>(s.begin(), s.end());
         partner->children = children;
     }
 
