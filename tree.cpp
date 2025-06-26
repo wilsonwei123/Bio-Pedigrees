@@ -17,6 +17,9 @@ class Node;
 //map everybody to their nodes, so split trees can be retrieved
 unordered_map<string, Node*> everyone = {};
 
+//tree name
+string treeName = "";
+
 //helper function
 void removeFromVector(vector<Node*>& vec, Node* target) {
     auto it = find(vec.begin(), vec.end(), target);
@@ -256,6 +259,7 @@ delete
 search (returns whether exists or not)
 switch <val>
 listall
+save
 stop
 */
 
@@ -352,9 +356,37 @@ void cmdSearch() {
     }
 }
 
+//file io
+void fileOut() {
+    ofstream out(treeName+".tree");
+    out << everyone.size() << "\n";
+    for (auto &i : everyone) {
+        //val
+        out << i.first << "\n-\n" << i.second->parents.size() << "\n";
+        //parents
+        for (int j = 0; j < i.second->parents.size(); j++) {
+            out << i.second->parents[j]->val << "\n";
+        }
+        out << "-\n";
+        //partner
+        if (i.second->partner) {
+            out << i.second->partner->val << "\n";
+        }
+        out << "-\n";
+        //children
+        out << i.second->children.size() << "\n";
+        for (int j = 0; j < i.second->children.size(); j++) {
+            out << i.second->children[j]->val << "\n";
+        }
+        out << "--\n";
+    }
+    cout << "File saved\n";
+    out.close();
+}
+
 //main function (needs to be tidied up (make a function for every command))
 void run() {
-    string treeName, name, command = "";
+    string name, command = "";
     cout << "Enter the tree name (no spaces): ";
     cin >> treeName;
     cout << "Enter starting node name: ";
@@ -391,6 +423,8 @@ void run() {
             }
         } else if (command == "listall") {
             listEveryone();
+        } else if (command == "save") {
+            fileOut();
         } else {
             cout << "Command not recognised, try something else.\n";
         }
