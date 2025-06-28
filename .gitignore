@@ -42,3 +42,5 @@
 
 # Testing files
 *.tree
+
+.vscode/
