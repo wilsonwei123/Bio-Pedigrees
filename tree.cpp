@@ -129,13 +129,17 @@ public:
     }
 
     //adds partner if doesn't already have
-    void addPartner(Node* partnerNode) {
+    void addPartner(Node* partnerNode, bool silence = false) {
         if (partner) {
-            cout << "Already has a partner\n";
+            if (!silence) {
+                cout << "Already has a partner\n";
+            }
             return;
         }
         if (partnerNode->partner) {
-            cout << "Already has a partner\n";
+            if (!silence) {
+                cout << "Already has a partner\n";
+            }
             return;
         }
         partner = partnerNode;
@@ -152,22 +156,30 @@ public:
     }
 
     //adds child to both it and its partner (if applicable)
-    void addChildren(Node* newChild) {
+    void addChildren(Node* newChild, bool silence = false) {
         if (find(children.begin(), children.end(), newChild) != children.end()) {
-            cout << "Already a child\n";
+            if (!silence) {
+                cout << "Already a child\n";
+            }
             return;
         }
         if (newChild == this || newChild == partner) {
-            cout << "Cannot add self or partner as child\n";
+            if (!silence) {
+                cout << "Cannot add self or partner as child\n";
+            }
             return;
         }
         if (newChild->parents.size() == 2) {
-            cout << "Already has max parent capacity (2)\n";
+            if (!silence) {
+                cout << "Already has max parent capacity (2)\n";
+            }
             return;
         }
         if (newChild->parents.size() == 1) {
             if (partner) {
-                cout << "Cannot overload parents.\n";
+                if (!silence) {
+                    cout << "Cannot overload parents.\n";
+                }
                 return;
             } else {
                 partner = newChild->parents[0];
@@ -185,22 +197,30 @@ public:
     }
 
     //adds a parent
-    void addParent(Node* newParent) {
+    void addParent(Node* newParent, bool silence = false) {
         if (newParent == this) {
-            cout << "Cannot assign self to parent\n";
+            if (!silence) {
+                cout << "Cannot assign self to parent\n";
+            }
             return;
         }
         if (find(parents.begin(), parents.end(), newParent) != parents.end()) {
-            cout << "Already a parent of node\n";
+            if (!silence) {
+                cout << "Already a parent of node\n";
+            }
             return;
         }
         if (parents.size() == 2) {
-            cout << "Max parent capacity (2) already\n";
+            if (!silence) {
+                cout << "Max parent capacity (2) already\n";
+            }
             return;
         }
         if (parents.size() == 1) {
             if (newParent->partner) {
-                cout << "Cannot overload parents\n";
+                if (!silence) {
+                    cout << "Cannot overload parents\n";
+                }
                 return;
             }
             parents[0]->partner = newParent;
@@ -455,15 +475,15 @@ bool fileIn() {
     for (auto &i : temp) {
         //adds parents
         for (int j = 0; j < i.second.second[0].size(); j++) {
-            i.second.first->addParent(temp[i.second.second[0][j]].first);
+            i.second.first->addParent(temp[i.second.second[0][j]].first, true);
         }
         //adds partner
         if (i.second.second[1].size() == 1) {
-            i.second.first->addPartner(temp[i.second.second[1][0]].first);
+            i.second.first->addPartner(temp[i.second.second[1][0]].first, true);
         }
         //adds children
         for (int j = 0; j < i.second.second[2].size(); j++) {
-            i.second.first->addChildren(temp[i.second.second[2][j]].first);
+            i.second.first->addChildren(temp[i.second.second[2][j]].first, true);
         }
         everyone[i.first] = i.second.first;
     }
