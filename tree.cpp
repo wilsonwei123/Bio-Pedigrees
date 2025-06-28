@@ -1,4 +1,4 @@
-//to-do: add/remove sibling method, use file i/o for storing trees, use bfs to print generations
+//to-do: add/remove sibling method, use bfs to print generations
 //urgent fix: for add commands, make sure newNode links are severed. eg if newNode is already a child of this then it cannot be a partner of this until connection removed.
 //make addParent() and removeParent() make partnering parents optional
 
@@ -260,6 +260,7 @@ search (returns whether exists or not)
 switch <val>
 listall
 save
+load
 stop
 */
 
@@ -385,7 +386,7 @@ void fileOut() {
 }
 
 /*
-unordered_map<string, pair<Node*, vector<vector<Node*>>>>
+unordered_map<string, pair<Node*, vector<vector<string>>>>
 um[val] = [this, [[parents], [partner], [children]]]
 */
 
@@ -396,16 +397,86 @@ bool fileIn() {
     
     ifstream in(fileName);
     if (!in.is_open()) {
-        cerr << "File could not be opened\n";
+        cout << "File could not be opened\n";
         return false;
+    } else {
+        cout << "File opened...\n";
     }
 
-    int total;
+    unordered_map<string, pair<Node*, vector<vector<string>>>> temp;
+    int total, len;
     in >> total;
 
     for (int i = 0; i < total; i++) {
-        
+        string value, partner, child, parent, useless;
+        vector<string> _children, _parents, _partners;
+        in >> value;
+        in >> useless;
+        if (useless != "-") {
+            cout << "Error while reading file\n";
+            return false;
+        }
+        //parents
+        in >> len;
+        for (int j = 0; j < len; j++) {
+            in >> parent;
+            _parents.push_back(parent);
+        }
+        in >> useless;
+        if (useless != "-") {
+            cout << "Error while reading file\n";
+            return false;
+        }
+        //partner if applicable
+        in >> partner;
+        if (partner != "-") {
+            _partners = {partner};
+            in >> useless;
+            if (useless != "-") {
+                cout << "Error while reading file\n";
+                return false;
+            }
+        }
+        //children
+        in >> len;
+        for (int i = 0; i < len; i++) {
+            in >> child;
+            _children.push_back(child);
+        }
+        in >> useless;
+        if (useless != "--") {
+            cout << "Error while reading file\n";
+            return false;
+        }
+        //create key-value in temp
+        temp[value] = {new Node(value), {_parents, _partners, _children}};
     }
+    everyone.clear();
+    for (auto &i : temp) {
+        //adds parents
+        for (int j = 0; j < i.second.second[0].size(); j++) {
+            i.second.first->addParent(temp[i.second.second[0][j]].first);
+        }
+        //adds partner
+        if (i.second.second[1].size() == 1) {
+            i.second.first->addPartner(temp[i.second.second[1][0]].first);
+        }
+        //adds children
+        for (int j = 0; j < i.second.second[2].size(); j++) {
+            i.second.first->addChildren(temp[i.second.second[2][j]].first);
+        }
+        everyone[i.first] = i.second.first;
+    }
+    if (fileName.size() > 4) {
+        if (fileName.substr(fileName.size()-5) == ".tree") {
+            for (int i = 0; i < 5; i++) {
+                fileName.pop_back();
+            }
+        }
+    }
+    treeName = fileName;
+    in.close();
+    return true;
 }
 
 //main function (needs to be tidied up (make a function for every command))
@@ -449,6 +520,10 @@ void run() {
             listEveryone();
         } else if (command == "save") {
             fileOut();
+        } else if (command == "load") {
+            if (fileIn()) {
+                cout << "Successfully loaded saved tree\n";
+            }
         } else {
             cout << "Command not recognised, try something else.\n";
         }
