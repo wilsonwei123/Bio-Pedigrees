@@ -384,6 +384,30 @@ void fileOut() {
     out.close();
 }
 
+/*
+unordered_map<string, pair<Node*, vector<vector<Node*>>>>
+um[val] = [this, [[parents], [partner], [children]]]
+*/
+
+bool fileIn() {
+    string fileName;
+    cout << "Enter file to read from: ";
+    cin >> fileName;
+    
+    ifstream in(fileName);
+    if (!in.is_open()) {
+        cerr << "File could not be opened\n";
+        return false;
+    }
+
+    int total;
+    in >> total;
+
+    for (int i = 0; i < total; i++) {
+        
+    }
+}
+
 //main function (needs to be tidied up (make a function for every command))
 void run() {
     string name, command = "";
